@@ -105,7 +105,18 @@ export default {
                 results: response.data.results
             }
         })
+    },
+
+    async reportsFilter(filterId: number): Promise<WorklogEntity> {
+        return execute(async () => {
+            const response = await tempoAxios.get(`/worklogs/jira/filter/${filterId}`)
+            debugLog(response)
+            return {
+                results: response.data.results
+            }
+        })
     }
+
 }
 
 async function fetchPaginatedResults<T>(acc: T[], response: AxiosResponse): Promise<T[]> {

@@ -75,6 +75,15 @@ export default {
         return worklog
     },
 
+    async reportsFilter(filterIdInput: string): Promise<Worklog> {
+        await checkToken()
+        const filterId = parseInt(filterIdInput)
+        if (!Number.isInteger(filterId)) {
+            throw Error('Error. Filter id should be an integer number.')
+        }
+        return await api.reportsFilter(filterId)
+    },
+
     async getUserWorklogs(when?: string): Promise<UserWorklogs> {
         await checkToken()
         const credentials = await authenticator.getCredentials()

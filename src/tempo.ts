@@ -63,6 +63,14 @@ export default {
         }
     },
 
+    async reportsFilters(filtersIds: string[]) {
+        for (const filterId of filtersIds) {
+            await execute(async () => {
+                await reportsFilter(filterId)
+            })
+        }
+    },
+
     async listUserWorklogs(when?: string, verbose = false) {
         execute(async () => {
             cli.action.start('Loading worklogs')
@@ -217,6 +225,37 @@ async function deleteWorklog(worklogIdInput: string): Promise<void> {
         `Deleted worklog details: ${worklog.issueKey}, ${worklog.interval?.startTime}-${worklog.interval?.endTime} (${worklog.duration})`
     )
 }
+
+async function reportsFilter(filterIdInput: string): Promise<void> {
+    cli.action.start(`Retrieving worklogs for filter ${filterIdInput}`)
+    const worklog = await worklogs.reportsFilter(filterIdInput)
+    cli.action.stop('Done.')
+
+    let totals = [];
+    let totalItems = [];
+    let totalsUsers = {};
+    for(let w of worklog.results){
+        let item = {};
+        item['issue'] = w.issue.key;
+        item['timeSpentSeconds'] = w['timeSpentSeconds'];
+        item['billableSeconds'] = w['billableSeconds'];
+        item['startDate'] = w['startDate'];
+        item['startTime'] = w['startTime'];
+        item['timeSpentSeconds'] = w['timeSpentSeconds'];
+        item['author'] = w.author.displayName;
+        if (! (w.author.displayName in totalsUsers)){
+            totalsUsers[w.author.displayName] = [];
+        } 
+        totalsUsers[w.author.displayName].push(item['timeSpentSeconds']);
+        totalItems.push(item);
+    }
+    for (const [key, value] of Object.entries(totalsUsers)){
+        let sum = parseFloat(value.reduce((a,b) => a+b, 0)/3600);
+        console.log(chalk.greenBright(`Succesfully retrieved worklog ${chalk.yellow(key)} ${sum}h.`));
+    }
+
+}
+
 
 function createWorklogInputs(tracker: Tracker, remainingEstimate?: string): [Interval, AddWorklogInput][] {
     return tracker.intervals.map(interval => {
